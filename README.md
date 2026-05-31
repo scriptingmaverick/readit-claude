@@ -2,7 +2,8 @@
 
 A Reddit-style clone scaffold using TypeScript, Express, and MongoDB.
 
-> This repository contains the project scaffold and file structure only. Business logic and implementation still need to be added.
+> This repository contains the project scaffold and file structure only.
+> Business logic and implementation still need to be added.
 
 ## Setup
 
@@ -31,6 +32,7 @@ A Reddit-style clone scaffold using TypeScript, Express, and MongoDB.
 ## Project structure
 
 ### Backend
+
 - `backend/package.json` - backend dependencies and scripts
 - `backend/tsconfig.json` - backend TypeScript configuration
 - `backend/tsconfig.build.json` - backend build config
@@ -44,6 +46,7 @@ A Reddit-style clone scaffold using TypeScript, Express, and MongoDB.
 - `backend/src/utils` - helper utilities
 
 ### Frontend
+
 - `frontend/package.json` - frontend dependencies and Vite scripts
 - `frontend/tsconfig.json` - frontend TypeScript configuration
 - `frontend/vite.config.ts` - Vite build configuration

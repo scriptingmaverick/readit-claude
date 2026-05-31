@@ -1,9 +1,7 @@
-/**
- * Server entrypoint placeholder.
- *
- * This file is part of the scaffold and should be implemented later.
- */
+import app from "./app";
 
 const PORT = process.env.PORT || 4000;
 
-console.log(`Readit Claude scaffold ready on port ${PORT}`);
+app.listen(PORT, () => {
+  console.log(`Backend running on http://localhost:${PORT}`);
+});

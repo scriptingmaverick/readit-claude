@@ -1,7 +1,13 @@
-/**
- * Express app scaffold.
- *
- * Add middleware, routes, and application setup here.
- */
+import express from "express";
+import cors from "cors";
 
-// TODO: implement Express application setup
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+app.get("/api", (_req, res) => {
+  res.json({ message: "Readit Claude backend is running" });
+});
+
+export default app;
