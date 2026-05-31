@@ -1,28 +1,24 @@
-# Issue #1 — Post Creation Feature
+# Issue #2 — Delete Post Feature
 
 ## Summary
 
-Build a full-stack post creation and feed feature.
+Allows users to delete any post from the feed, with a confirmation step to prevent accidental deletion.
 
 ## Frontend
 
-- A `PostForm` component (always visible on the page) with two fields: `title` (text input) and `description` (textarea), plus a "Post" button
-- A `Feed` component that lists posts newest-first; each post shows: username, title, description, and time created
-- On submit, the form calls the backend API; the new post appears at the top of the feed
+- Each post card in `Feed.tsx` gets a **Delete** button
+- Clicking Delete opens a **confirmation dialog** with the message "Are you sure you want to delete this post?" and two actions: **Cancel** and **Delete**
+- On confirm: calls `DELETE /api/posts/:id`, removes the card from the feed, shows a success/error message
+- If deletion fails (network error, post not found), the post stays visible and an error message is shown
+- New `ConfirmDialog` component to handle the dialog UI
 
 ## Backend
 
-- `Post` Mongoose model with fields: `title`, `description`, `username`, `createdAt`
-- `POST /api/posts` — create a post (saves to MongoDB)
-- `GET /api/posts` — fetch all posts sorted newest-first
-- Wire routes into `app.ts`, connect MongoDB in `server.ts`
-
-## Error Handling
-
-- Show user-visible error messages for any API failures
+- `deletePost` controller: finds post by `_id`, deletes it, returns `200`; returns `404` if not found
+- `DELETE /api/posts/:id` route wired into `posts.ts`
 
 ## Out of Scope
 
-- Auth/login (username can be a placeholder for now)
-- Image uploads
-- Any post fields beyond title & description
+- Post recovery / soft delete
+- Bulk deletion
+- Ownership checks (any user can delete any post — auth is out of scope)

@@ -1,65 +1,35 @@
-# Tasks for Issue #1 — Post Creation Feature
+# Tasks for Issue #2 — Delete Post Feature
 
-## Task 1 — MongoDB connection
-Files: `backend/src/config/db.ts`, `backend/src/server.ts`
-- Implement `connectDB()` in `db.ts` using `mongoose.connect(process.env.MONGO_URI)`
-- Load `dotenv` and call `connectDB()` in `server.ts` before `app.listen`
-- **Acceptance:** `npm run dev` starts without a DB error when `MONGO_URI` is set in `.env`
-
-## Task 2 — Post Mongoose model
-File: `backend/src/models/Post.ts`
-- Schema fields: `title` (String, required), `description` (String, required), `username` (String, default `"Anonymous"`), `createdAt` (Date, default `Date.now`)
-- **Acceptance:** TypeScript compiles; model is importable from other files
-
-## Task 3 — Post controllers
+## Task 1 — `deletePost` controller
 File: `backend/src/controllers/postController.ts`
-- `createPost`: validates title + description, saves a new Post, returns `201` with the created post
-- `getPosts`: returns all posts sorted by `createdAt` descending
-- **Acceptance:** Each handler has the correct Express `RequestHandler` signature; TypeScript compiles
+- Find post by `req.params.id` using `findByIdAndDelete`
+- Return `200` with the deleted post document
+- If not found, throw an error with `status: 404` so `errorHandler` returns the right HTTP code
+- **Acceptance:** `tsc --noEmit` passes; `curl -X DELETE /api/posts/:id` returns `200` with the post; a non-existent ID returns `404 { message: "Post not found" }`
 
-## Task 4 — Post routes
+## Task 2 — Delete route
 File: `backend/src/routes/posts.ts`
-- `POST /` → `createPost`, `GET /` → `getPosts`
-- **Acceptance:** File exports an Express `Router`; TypeScript compiles
+- Add `router.delete("/:id", deletePost)`
+- **Acceptance:** `tsc --noEmit` passes; existing `GET /` and `POST /` routes untouched
 
-## Task 5 — Error handler middleware
-File: `backend/src/utils/errorHandler.ts`
-- Four-argument Express error middleware `(err, req, res, next)`
-- Returns `{ message }` JSON with the appropriate HTTP status code
-- **Acceptance:** Middleware has the correct signature; TypeScript compiles
+## Task 3 — ConfirmDialog component
+File: `frontend/src/components/ConfirmDialog.tsx`
+- Props: `message: string`, `onConfirm: () => void`, `onCancel: () => void`
+- Renders a full-screen overlay with a modal card containing the message and two buttons: **Cancel** (neutral) and **Delete** (danger/red)
+- **Acceptance:** Vite build passes; component is importable
 
-## Task 6 — Wire backend together
-File: `backend/src/app.ts`
-- Import `express-async-errors` at the top
-- Mount `postsRouter` at `/api/posts`
-- Add `errorHandler` as the last middleware
-- **Acceptance:** `curl http://localhost:4000/api/posts` returns `[]`; `curl -X POST` with `title` + `description` returns `201`
-
-## Task 7 — Vite proxy
-File: `frontend/vite.config.ts`
-- Add `server.proxy` entry: `/api` → `http://localhost:4000`
-- **Acceptance:** Frontend dev server forwards `/api` requests to the backend without CORS errors
-
-## Task 8 — PostForm component
-File: `frontend/src/components/PostForm.tsx`
-- Controlled inputs for `title` and `description`, a Post button
-- On submit: `POST /api/posts`, clears the form, calls an `onPostCreated` callback
-- Shows an inline error message on API failure
-- **Acceptance:** Form submits successfully and clears; error message appears on failure
-
-## Task 9 — Feed component
+## Task 4 — Wire delete into Feed
 File: `frontend/src/components/Feed.tsx`
-- Fetches `GET /api/posts` on mount and whenever `refreshKey` prop changes
-- Renders each post with username, title, description, and formatted `createdAt`
-- **Acceptance:** Existing posts render on load; after a new post is submitted the feed updates with it at the top
+- Add a Delete button to each post card's meta row
+- Add `pendingDeleteId: string | null` state; clicking Delete sets it to that post's `_id`
+- Render `<ConfirmDialog>` when `pendingDeleteId` is set
+- On confirm: optimistically remove the post from local `posts` state → call `DELETE /api/posts/:id` → if it fails, restore the post and show a per-card error message
+- On cancel: clear `pendingDeleteId`
+- **Acceptance:** Vite build passes; Delete button appears on every card; clicking opens dialog; Cancel closes it without changes; Confirm removes the post from the feed
 
-## Task 10 — Wire App
-File: `frontend/src/App.tsx`
-- Replace placeholder with `<PostForm>` and `<Feed>`
-- Manage a `refreshKey` counter that increments after each successful post to trigger feed refresh
-- **Acceptance:** Full user journey works end-to-end in the browser
-
-## Task 11 — Styles
+## Task 5 — Styles for delete button and dialog
 File: `frontend/src/styles.css`
-- Styles for the form card, inputs/textarea, submit button, and feed post cards
-- **Acceptance:** UI is clean and readable; no unstyled raw elements
+- `.feed__delete-btn` — small muted button, pushed to the right of the meta row via `margin-left: auto`; turns red on hover
+- `.confirm-dialog__overlay` — full-screen semi-transparent backdrop
+- `.confirm-dialog__card` — centred white card with message text and action buttons
+- **Acceptance:** Vite build passes; UI matches the issue spec (overlay + card + two buttons); delete button is unobtrusive on the card
