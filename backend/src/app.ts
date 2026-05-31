@@ -1,5 +1,8 @@
+import "express-async-errors";
 import express from "express";
 import cors from "cors";
+import postsRouter from "./routes/posts";
+import { errorHandler } from "./utils/errorHandler";
 
 const app = express();
 
@@ -9,5 +12,9 @@ app.use(express.json());
 app.get("/api", (_req, res) => {
   res.json({ message: "Readit Claude backend is running" });
 });
+
+app.use("/api/posts", postsRouter);
+
+app.use(errorHandler);
 
 export default app;
