@@ -1,7 +1,8 @@
-/**
- * MongoDB configuration scaffold.
- *
- * Add connection logic and environment configuration here.
- */
+import mongoose from "mongoose";
 
-// TODO: implement MongoDB connection
+export async function connectDB(): Promise<void> {
+  const uri = process.env.MONGO_URI;
+  if (!uri) throw new Error("MONGO_URI is not set");
+  await mongoose.connect(uri);
+  console.log("MongoDB connected");
+}
