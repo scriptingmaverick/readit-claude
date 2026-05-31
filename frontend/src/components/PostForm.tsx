@@ -1,29 +1,25 @@
 import { useState, FormEvent } from "react";
+import { useAuth } from "../context/AuthContext";
+import { postService } from "../services/postService";
 
-interface Props {
+type Props = {
   onPostCreated: () => void;
-}
+};
 
-export function PostForm({ onPostCreated }: Props) {
+export const PostForm = ({ onPostCreated }: Props) => {
+  const { token } = useAuth();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  async function handleSubmit(e: FormEvent) {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (!token) return;
     setError("");
     setSubmitting(true);
     try {
-      const res = await fetch("/api/posts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message ?? "Failed to create post");
-      }
+      await postService.createPost(token, { title, description });
       setTitle("");
       setDescription("");
       onPostCreated();
@@ -32,7 +28,7 @@ export function PostForm({ onPostCreated }: Props) {
     } finally {
       setSubmitting(false);
     }
-  }
+  };
 
   return (
     <form className="post-form" onSubmit={handleSubmit}>
@@ -58,4 +54,4 @@ export function PostForm({ onPostCreated }: Props) {
       </button>
     </form>
   );
-}
+};
