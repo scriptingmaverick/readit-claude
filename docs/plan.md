@@ -1,34 +1,51 @@
-# Plan for Issue #2 — Delete Post Feature
+# Plan for Issue #3 — Add Auth
 
-## Code Reuse Found
+## New Files
 
-- `Post` interface in `Feed.tsx` already includes `_id` — usable directly for the delete API call, no changes needed to the type
-- `postController.ts` already imports `Post` model and uses `RequestHandler` — `deletePost` follows the exact same pattern
-- `errorHandler` middleware already catches thrown errors — no extra error wiring needed in the new controller
-- `.feed__meta` already uses `display: flex` — the Delete button slots in naturally by adding `margin-left: auto`
-
-## Files to Add
-
+### Backend
 | File | What |
 |---|---|
-| `frontend/src/components/ConfirmDialog.tsx` | Modal with "Are you sure?" message, Cancel and Delete buttons |
+| `backend/src/models/User.ts` | User schema: `username`, `password` (bcrypt-hashed) |
+| `backend/src/middleware/auth.ts` | JWT verification middleware; attaches `req.user` to request |
+| `backend/src/types/express.d.ts` | Declaration merge to add `user?: { id, username }` to Express `Request` |
 
-## Files to Modify
+### Frontend
+| File | What |
+|---|---|
+| `frontend/src/context/AuthContext.tsx` | Context + provider: `{ isAuthenticated, user, token, login, logout }` |
+| `frontend/src/pages/LoginPage.tsx` | Combined login/signup form (username + password) |
+| `frontend/src/components/ProtectedRoute.tsx` | Redirects to `/login` if not authenticated |
+| `frontend/src/services/authService.ts` | API calls: `login`, `logout`, `me` |
+| `frontend/src/services/postService.ts` | API calls: `getPosts`, `createPost`, `deletePost` |
 
+## Modified Files
+
+### Backend
 | File | Change |
 |---|---|
-| `backend/src/controllers/postController.ts` | Add `deletePost`: finds by `_id`, deletes, returns `200`; throws `404` if not found |
-| `backend/src/routes/posts.ts` | Add `DELETE /:id` → `deletePost` |
-| `frontend/src/components/Feed.tsx` | Add Delete button per card; manage `pendingDeleteId` state; wire `ConfirmDialog`; optimistically remove post on confirm, restore on error |
-| `frontend/src/styles.css` | Styles for `.feed__delete-btn` and `.confirm-dialog` overlay/modal |
+| `backend/src/controllers/authController.ts` | Implement `login` (create-or-authenticate), `logout`, `me` |
+| `backend/src/routes/auth.ts` | Wire `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me` |
+| `backend/src/models/Post.ts` | Replace `username: string` with `userId: ObjectId` (ref User) |
+| `backend/src/controllers/postController.ts` | `createPost` sets `userId`; `getPosts` filters by `userId`; `deletePost` checks ownership |
+| `backend/src/app.ts` | Mount auth router; apply auth middleware to posts router |
 
-## Impact Areas
+### Frontend
+| File | Change |
+|---|---|
+| `frontend/package.json` | Add `react-router-dom` + `@types/react-router-dom` |
+| `frontend/src/App.tsx` | Wrap with `AuthProvider` + `BrowserRouter`; add routes `/login` and `/feed`; add logout button in header |
+| `frontend/src/components/Feed.tsx` | Use `postService`; remove `username` from Post type; show auth user's name from context; pass token to service |
+| `frontend/src/components/PostForm.tsx` | Use `postService`; pass token from context to service |
 
-- `Feed.tsx` — render logic is extended, not rewritten; existing fetch + `refreshKey` behaviour untouched
-- `backend/src/routes/posts.ts` — additive only; existing `GET /` and `POST /` routes unaffected
+## Impact / Risk Areas
+
+1. **Existing MongoDB posts** — old posts have `username` but no `userId`; they won't appear in anyone's feed after the model change. DB should be cleared before testing.
+2. **`Feed.tsx` Post type** — `username` field removed; display will show the logged-in user's name from context instead.
+3. **All unauthenticated API calls** — once auth middleware is applied to the posts router, any request without a valid JWT returns 401.
 
 ## Out of Scope
 
-- Post recovery / soft delete
-- Bulk deletion
-- Ownership / auth checks
+- Email verification, password reset, OAuth, MFA
+- User profiles, role-based authorization
+- JWT refresh tokens
+- Migration of existing posts without `userId`

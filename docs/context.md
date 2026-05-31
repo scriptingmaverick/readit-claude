@@ -1,24 +1,36 @@
-# Issue #2 — Delete Post Feature
+# Issue #3: Add Auth — Context
 
-## Summary
+## Goal
 
-Allows users to delete any post from the feed, with a confirmation step to prevent accidental deletion.
+Introduce basic authentication so users must log in before accessing the app. Combined signup/login: if the username exists → validate password; if not → auto-create account and log in.
 
-## Frontend
+## Backend (all scaffolding already exists)
 
-- Each post card in `Feed.tsx` gets a **Delete** button
-- Clicking Delete opens a **confirmation dialog** with the message "Are you sure you want to delete this post?" and two actions: **Cancel** and **Delete**
-- On confirm: calls `DELETE /api/posts/:id`, removes the card from the feed, shows a success/error message
-- If deletion fails (network error, post not found), the post stays visible and an error message is shown
-- New `ConfirmDialog` component to handle the dialog UI
+1. **`User` model** — implement schema with `username` and `password` fields (bcryptjs already installed for hashing)
+2. **`authController.ts`** — implement `login` (create-or-authenticate), `logout`, and `me`
+3. **`auth.ts` routes** — wire up `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`
+4. **`Post` model** — replace `username: string` with `userId: ObjectId` (ref to User)
+5. **`postController.ts`** — `createPost` attaches `userId`; `getPosts` filters by user; `deletePost` checks ownership
+6. **Auth middleware** — protect post routes; validate session/JWT (jsonwebtoken already installed)
+7. **`app.ts`** — mount auth router and protect posts router
 
-## Backend
+## Frontend (needs new packages: react-router-dom)
 
-- `deletePost` controller: finds post by `_id`, deletes it, returns `200`; returns `404` if not found
-- `DELETE /api/posts/:id` route wired into `posts.ts`
+1. **`AuthContext`** — React Context holding `{ isAuthenticated, user, login, logout }`
+2. **`LoginPage`** — username + password form, combined signup/login
+3. **`ProtectedRoute`** — wrapper that redirects unauthenticated users to `/login`
+4. **`App.tsx`** — add React Router with `/login` and `/feed` routes; wrap feed in `ProtectedRoute`
+5. **API calls** — attach auth token (from context/storage) to all post requests
+6. **Feed** — backend already filters by user, so no frontend changes needed beyond auth
 
-## Out of Scope
+## Error Handling
 
-- Post recovery / soft delete
-- Bulk deletion
-- Ownership checks (any user can delete any post — auth is out of scope)
+- Wrong password → "Invalid username or password."
+- Request failure → "Unable to log in. Please try again."
+- Session expired → redirect to `/login`
+
+## Key Dependencies Already Installed
+
+- `bcryptjs` — password hashing
+- `jsonwebtoken` — JWT session management
+- React Router DOM — needs to be added to frontend
