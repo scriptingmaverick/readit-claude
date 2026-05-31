@@ -63,3 +63,7 @@ these rules:
 
 - **Action:** Run all your tests one last time. If they are green, push the code
   to GitHub.
+
+
+## Rules
+- Strictly assumptions are banned, if you have any questions or need clarifications, ask the user.
