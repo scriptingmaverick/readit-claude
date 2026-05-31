@@ -15,3 +15,12 @@ export const getPosts: RequestHandler = async (_req, res) => {
   const posts = await Post.find().sort({ createdAt: -1 });
   res.json(posts);
 };
+
+export const deletePost: RequestHandler = async (req, res) => {
+  const deleted = await Post.findByIdAndDelete(req.params.id);
+  if (!deleted) {
+    const err = Object.assign(new Error("Post not found"), { status: 404 });
+    throw err;
+  }
+  res.json(deleted);
+};
