@@ -1,7 +1,9 @@
-/**
- * Post routes scaffold.
- *
- * Define routes for post operations here.
- */
+import { Router } from "express";
+import { createPost, getPosts } from "../controllers/postController";
 
-// TODO: implement post routes
+const router = Router();
+
+router.get("/", getPosts);
+router.post("/", createPost);
+
+export default router;
