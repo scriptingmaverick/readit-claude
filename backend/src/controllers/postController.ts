@@ -1,7 +1,17 @@
-/**
- * Post controller scaffold.
- *
- * Add request handlers for post CRUD operations here.
- */
+import { RequestHandler } from "express";
+import { Post } from "../models/Post";
 
-// TODO: implement post controller functions
+export const createPost: RequestHandler = async (req, res) => {
+  const { title, description } = req.body as { title?: string; description?: string };
+  if (!title || !description) {
+    res.status(400).json({ message: "title and description are required" });
+    return;
+  }
+  const post = await Post.create({ title, description });
+  res.status(201).json(post);
+};
+
+export const getPosts: RequestHandler = async (_req, res) => {
+  const posts = await Post.find().sort({ createdAt: -1 });
+  res.json(posts);
+};
